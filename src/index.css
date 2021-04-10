@@ -72,5 +72,30 @@ label:hover {
 }
 
 /* image grid styles */
+.img-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.img-wrap {
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.img-wrap img {
+  max-height: 80%;
+  max-width: 80%;
+}
 
 /* modal styles */
+
+/* media queries */
+@media (min-width: 481px) {
+  .img-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .img-wrap {
+    max-height: 15rem;
+  }
+}
