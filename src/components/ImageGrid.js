@@ -10,9 +10,9 @@ const ImageGrid = ({ setSelectedImage }) => {
           <div
             className="img-wrap"
             key={doc.id}
-            onClick={() => setSelectedImage(doc.url)}
+            onClick={() => setSelectedImage(doc.fullSizeURL)}
           >
-            <img src={doc.url} alt="uploaded pic" />
+            <img src={doc.thumbnailURL} alt="uploaded pic" />
           </div>
         ))}
     </div>

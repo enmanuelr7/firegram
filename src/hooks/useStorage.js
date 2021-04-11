@@ -11,6 +11,41 @@ const useStorage = (file) => {
     const fileRef = storage.ref(file.name);
     const collectionRef = firestore.collection('images');
 
+    function delay(t, v) {
+      return new Promise(function (resolve) {
+        setTimeout(resolve.bind(null, v), t);
+      });
+    }
+
+    function keepTrying(triesRemaining, storageRef) {
+      if (triesRemaining < 0) {
+        return Promise.reject('out of tries');
+      }
+
+      return storageRef
+        .getDownloadURL()
+        .then((url) => {
+          return url;
+        })
+        .catch((error) => {
+          switch (error.code) {
+            case 'storage/object-not-found':
+              return delay(2000).then(() => {
+                return keepTrying(triesRemaining - 1, storageRef);
+              });
+            default:
+              console.log(error);
+              return Promise.reject(error);
+          }
+        });
+    }
+
+    function resizedName(fileName, dimensions) {
+      const extIndex = fileName.lastIndexOf('.');
+      const ext = fileName.substring(extIndex);
+      return `${fileName.substring(0, extIndex)}_${dimensions}${ext}`;
+    }
+
     fileRef.put(file).on(
       'state_changed',
       (snap) => {
@@ -21,9 +56,19 @@ const useStorage = (file) => {
         setError(err);
       },
       async () => {
-        const url = await fileRef.getDownloadURL();
-        collectionRef.add({ url, createdAt: timestamp() });
-        setURL(url);
+        const storageRef = storage.ref(resizedName(file.name, '1000x1000'));
+        const thumbnailRef = storage.ref(resizedName(file.name, '200x200'));
+
+        keepTrying(10, storageRef).then((fullSizeURL) => {
+          keepTrying(10, thumbnailRef).then((thumbnailURL) => {
+            setURL(thumbnailURL);
+            collectionRef.add({
+              fullSizeURL,
+              thumbnailURL,
+              createdAt: timestamp(),
+            });
+          });
+        });
       }
     );
   }, [file]);
